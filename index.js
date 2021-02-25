@@ -4,24 +4,39 @@ const Dishes = require('./Models/dishes');
 
 const url = 'mongodb://localhost:27017/conFusion';
 
-const connect  = mongoose.connect(url,{useNewUrlParser:true,useUnifiedTopology:true,useCreateIndex:true});
+const connect  = mongoose.connect(url,{
+    useNewUrlParser:true,
+    useFindAndModify:true,
+    useUnifiedTopology:true,
+    useCreateIndex:true,
+});
 
 connect.then((db)=>{
     console.log("Connected to Server");
-    // Dishes.deleteMany({})
-    // .then(()=>{
-    //     console.log("Removed!");
-    // });
     Dishes.create({
         name: "Test",
         description: "description" 
     }) 
     .then((dish)=>{
         console.log(dish);
-        return Dishes.find({}).exec();
+        return Dishes.findByIdAndUpdate(dish._id,{
+            $set: {description :"Updated test"}
+        },{ 
+            new: true 
+        }).exec();
     })
-    .then((dishes)=>{
-        console.log("All Dished: "+ dishes);
+    .then((dish)=>{
+        console.log("Modified Dish: "+ dish);
+        dish.comments.push({
+            rating: 4,
+            comment: "Nice Dish",
+            author: "Lewis Cassano" 
+        });
+
+        return dish.save();
+    })
+    .then((dish)=>{
+        console.log("Commented Dish: "+ dish)
         return Dishes.deleteMany({});
     })
     .then(()=>{
